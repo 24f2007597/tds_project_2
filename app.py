@@ -1,8 +1,8 @@
 from flask import Flask, jsonify, request
-from selenium import webdriver
 import os
 from dotenv import load_dotenv
-
+import get_quiz_content
+import get_ans_from_llm
 load_dotenv("secrets.env")
 
 app = Flask(__name__)
@@ -20,7 +20,8 @@ def quiz_task():
     try:
         return jsonify({'message': 'Task started successfully!'}), 200
     finally:
-        pass
+        quiz_content = get_quiz_content.get_quiz_content(url)
+        answers = get_ans_from_llm.get_answer_from_llm(quiz_content)
 
 if __name__ == '__main__':
     app.run(debug=True)
