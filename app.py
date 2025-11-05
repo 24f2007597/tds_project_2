@@ -5,6 +5,8 @@ from dotenv import load_dotenv
 import get_quiz_content
 import get_ans_from_llm
 import submit_answer
+import get_pdf_text
+import scrape_website
 load_dotenv("secrets.env")
 
 app = Flask(__name__)
@@ -19,6 +21,25 @@ def run_quiz_chain(url):
             if llm_ans:
                 submit_url = llm_ans.get('submission_url', None)
                 answer_value = llm_ans.get('payload', {}).get('answer', None)
+                tools = llm_ans.get('payload', {}).get('tools', None)
+
+                if tools == 'pdf_parser':
+                    try:
+                        pdf_text = get_pdf_text.get_pdf_text(answer_value)
+                        print(f"Extracted PDF text")
+                        answer_value = get_ans_from_llm.get_answer_from_llm(pdf_text, is_pdf_data=True).get('payload', {}).get('answer', None)
+                    except Exception as e:
+                        print(f"Error extracting PDF text: {e}")
+                        break
+
+                if tools == 'web_scraper':
+                    try:
+                        html_content = scrape_website.scrape_website(answer_value)
+                        print(f"Extracted HTML content")
+                        answer_value = get_ans_from_llm.get_answer_from_llm(html_content, is_html_data=True).get('payload', {}).get('answer', None)
+                    except Exception as e:
+                        print(f"Error extracting HTML content: {e}")
+                        break
 
                 try:
                     response = submit_answer.submit_answer(submit_url, answer_value)

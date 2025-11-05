@@ -8,23 +8,46 @@ API_KEY = os.getenv("API_KEY")
 secret = os.getenv("my_secret")
 genai.configure(api_key=API_KEY)
 
-def get_answer_from_llm(quiz_text):
+def get_answer_from_llm(quiz_text, is_pdf_data=False, is_html_data=False):
     system_prompt = f"""
     You are an expert data analysis agent. Your job is to parse a quiz question
     and return a structured JSON object detailing the *exact* steps to solve it.
     
-    The JSON output MUST follow this format:
+    Base JSON schema:
     {{
       "submission_url": "url to post the answer to",
       "payload": {{
         "email": "24f2007597@ds.study.iitm.ac.in",
         "secret": "{secret}",
-        "answer": "the final answer to the quiz question"
-    }}
+        "answer": "the final answer",
+        "tools": null,
+        "question": null
+      }}
     }}
 
-    If a value is not present, use null.
-    Respond ONLY with the valid JSON object. Do not add any other text.
+    Special cases:
+    1. For PDF parsing:
+       - Set "tools": "pdf_parser"
+       - Set "answer": "<pdf_url>"
+       - Set "question": "specific parsing instructions"
+       
+    2. For web scraping:
+       - Set "tools": "web_scraper"
+       - Set "answer": "<target_url>"
+       - Set "question": "specific scraping instructions"
+
+    3. For data analysis:
+       - Set "tools": "data_analysis"
+       - Set "answer": null
+       - Set "question": "specific data analysis instructions"
+
+    Rules:
+    - If {is_pdf_data} is true, treat input as PDF-extracted text with pages separated by blank lines
+    - If {is_html_data} is true, treat input as raw HTML content
+    - Return ONLY valid JSON - no additional text
+    - Use null for missing/unknown values
+    - Always include submission_url and basic payload fields
+    - Include tools and question ONLY when special processing needed
     """
 
     prompt = f"Here is the quiz text:\n\n{quiz_text}"
