@@ -8,10 +8,55 @@ API_KEY = os.getenv("API_KEY")
 secret = os.getenv("my_secret")
 genai.configure(api_key=API_KEY)
 
-def get_answer_from_llm(quiz_text, is_pdf_data=False, is_html_data=False):
+def get_llm_generated_code(sample_data, analysis_prompt):
+    system_prompt = f"""
+    You are an expert data analyst. Given a sample of the data and a prompt,
+    generate Python pandas code that answers the question or performs the analysis
+    requested in the prompt.
+
+    Rules:
+    - Use only pandas library functions.
+    - Assume the full dataset is in a DataFrame named 'df'.
+    - Return ONLY the code needed to produce the answer (no explanations).
+    - The code should return the final result (e.g., a value, DataFrame, etc.).
+    - Do not include import statements.
+    - Use the sample data below to understand the structure of 'df'.
+
+    Sample data (first 5 rows):
+    {sample_data.to_dict(orient='records')}
+
+    Analysis prompt:
+    {analysis_prompt}
+    """
+
+    prompt = f"Generate pandas code for the above analysis prompt."
+
+    model = genai.GenerativeModel(
+        model_name='gemini-2.5-flash',
+        system_instruction=system_prompt
+    )
+    
+    print("--- 🧠 Calling Gemini API for code generation... ---")
+
+    try:
+        response = model.generate_content(prompt)
+        generated_code = response.text.strip()
+        
+        print("--- ✅ LLM Generated Code ---")
+        print(generated_code)
+        
+        return generated_code
+
+    except Exception as e:
+        print(f"--- ❌ Error calling LLM for code generation ---")
+        print(f"Error: {e}")
+        return None
+
+def get_answer_from_llm(quiz_text, is_pdf_data=False, is_html_data=False, is_data_analysis=False, question_text=None):
     system_prompt = f"""
     You are an expert data analysis agent. Your job is to parse a quiz question
-    and return a structured JSON object detailing the *exact* steps to solve it.
+    and return a structured JSON object either with the final answer or with
+    instructions for special processing (like PDF parsing, web scraping, or data analysis)
     
     Base JSON schema:
     {{
@@ -36,14 +81,16 @@ def get_answer_from_llm(quiz_text, is_pdf_data=False, is_html_data=False):
        - Set "answer": "<target_url>"
        - Set "question": "specific scraping instructions"
 
-    3. For data analysis:
+    3. For data analysis tasks:
        - Set "tools": "data_analysis"
-       - Set "answer": null
-       - Set "question": "specific data analysis instructions"
+       - Set "answer": "<file_url>" if data needs to be scraped, else set "answer": "<data_in_question>"
+       - Set "question": "data analysis instructions"
 
     Rules:
     - If {is_pdf_data} is true, treat input as PDF-extracted text with pages separated by blank lines
     - If {is_html_data} is true, treat input as raw HTML content
+    - If {is_data_analysis} is true, treat input as data analysis task description with data included
+    - If {question_text} is provided, treat quiz text as data source and use question_text for the question/instructions
     - Return ONLY valid JSON - no additional text
     - Use null for missing/unknown values
     - Always include submission_url and basic payload fields

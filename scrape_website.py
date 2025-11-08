@@ -36,6 +36,7 @@ def scrape_website(url):
     finally:
         driver.quit()
 
+'''
 if not os.path.exists('sample_quiz.html'):
     print("--- ❌ Failure! 'sample_quiz.html' file not found. ---")
 else:
@@ -49,3 +50,4 @@ else:
         print(quiz_text)
     else:
         print("\n--- ❌ Failure! No text decoded ---")
+'''

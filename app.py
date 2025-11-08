@@ -7,6 +7,8 @@ import get_ans_from_llm
 import submit_answer
 import get_pdf_text
 import scrape_website
+from urllib.parse import urlparse
+import analyze_data
 load_dotenv("secrets.env")
 
 app = Flask(__name__)
@@ -22,12 +24,13 @@ def run_quiz_chain(url):
                 submit_url = llm_ans.get('submission_url', None)
                 answer_value = llm_ans.get('payload', {}).get('answer', None)
                 tools = llm_ans.get('payload', {}).get('tools', None)
+                question_text = llm_ans.get('payload', {}).get('question', None)
 
                 if tools == 'pdf_parser':
                     try:
                         pdf_text = get_pdf_text.get_pdf_text(answer_value)
                         print(f"Extracted PDF text")
-                        answer_value = get_ans_from_llm.get_answer_from_llm(pdf_text, is_pdf_data=True).get('payload', {}).get('answer', None)
+                        answer_value = get_ans_from_llm.get_answer_from_llm(pdf_text, is_pdf_data=True, question_text=question_text).get('payload', {}).get('answer', None)
                     except Exception as e:
                         print(f"Error extracting PDF text: {e}")
                         break
@@ -36,9 +39,21 @@ def run_quiz_chain(url):
                     try:
                         html_content = scrape_website.scrape_website(answer_value)
                         print(f"Extracted HTML content")
-                        answer_value = get_ans_from_llm.get_answer_from_llm(html_content, is_html_data=True).get('payload', {}).get('answer', None)
+                        answer_value = get_ans_from_llm.get_answer_from_llm(html_content, is_html_data=True, question_text=question_text).get('payload', {}).get('answer', None)
                     except Exception as e:
                         print(f"Error extracting HTML content: {e}")
+                        break
+                
+                if tools == 'data_analysis':
+                    try:
+                        data = answer_value
+                        result = urlparse(answer_value)
+                        if all([result.scheme, result.netloc, result.path]):
+                            data = analyze_data.get_file_as_string(answer_value)
+                        answer_value = analyze_data.analyze_data(data, question_text)
+
+                    except Exception as e:
+                        print(f"Error retrieving data for analysis: {e}")
                         break
 
                 try:

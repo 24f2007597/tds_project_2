@@ -38,6 +38,8 @@ def submit_answer(submit_url, answer):
         return response.json()
     except requests.exceptions.RequestException as e:
         raise Exception(f"Failed to submit answer: {str(e)}")
-    
+
+'''  
 test_submit_url = "https://webhook.site/a46b21ac-4380-46a1-b71f-2ea227b0739e"
 submit_answer(test_submit_url, "450")
+'''
