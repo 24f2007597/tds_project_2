@@ -41,4 +41,4 @@ ENV PORT 8080
 # Command to run your Flask/FastAPI app.
 # This example is for FastAPI with uvicorn.
 # For Flask: CMD ["gunicorn", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "app:app", "--bind", "0.0.0.0:$PORT"]
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "app:app"]
