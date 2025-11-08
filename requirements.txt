@@ -1,6 +1,5 @@
-# Your Web Server
-fastapi
-uvicorn
+Flask
+gunicorn
 
 # Your Tools
 google-generativeai
@@ -18,7 +17,6 @@ cffi==2.0.0
 charset-normalizer==3.4.4
 click==8.3.0
 cryptography==46.0.3
-Flask==3.1.2
 google-ai-generativelanguage==0.6.15
 google-api-core==2.25.2
 google-api-python-client==2.186.0
