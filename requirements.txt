@@ -1,0 +1,12 @@
+# Your Web Server
+fastapi
+uvicorn
+
+# Your Tools
+google-generativeai
+python-dotenv
+requests
+selenium
+webdriver-manager
+pdfplumber
+pandas
