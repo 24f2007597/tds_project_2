@@ -1,0 +1,19 @@
+    name: Sync with Hugging Face Space
+
+    on:
+      push:
+        branches:
+          - main # Or your main development branch
+
+    jobs:
+      sync:
+        runs-on: ubuntu-latest
+        steps:
+          - uses: actions/checkout@v4
+
+          - name: Sync with Hugging Face Space
+            uses: huggingface/sync-action@v1.0.0 # Use the latest version
+            with:
+              hf_token: ${{ secrets.HF_TOKEN }}
+              repo_id: your-huggingface-username/your-space-name # Replace with your details
+              commit_message: "Sync from GitHub"
