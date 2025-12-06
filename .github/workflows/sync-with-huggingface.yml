@@ -15,5 +15,5 @@
             uses: huggingface/sync-action@v1.0.0 # Use the latest version
             with:
               hf_token: ${{ secrets.HF_TOKEN }}
-              repo_id: your-huggingface-username/your-space-name # Replace with your details
+              repo_id: https://huggingface.co/spaces/24f2007597/tds_project_2 # Replace with your details
               commit_message: "Sync from GitHub"
